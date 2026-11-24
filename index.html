@@ -161,11 +161,13 @@ dialog .card{width:min(147px,44vw);max-width:100%;margin:6px auto}
 #gate{width:min(360px,calc(100% - 30px));text-align:center}
 #gate a{display:grid;place-items:center;margin-top:12px;text-decoration:none}
 @media(orientation:landscape){.game{visibility:hidden}}
+#sound{position:absolute;z-index:4;top:max(6px,env(safe-area-inset-top));right:7px;min-width:42px;min-height:38px;border-radius:11px;border:1px solid #d7a5f9;background:#211435ed;color:#f8d9ff;box-shadow:0 2px 7px #100919;font-size:1.1rem}
+#sound[aria-pressed=false]{color:#c8b3d1;background:#302739}
 </style>
 </head>
 <body>
 <main class="game" data-screen="home">
-<header class="topbar"><span class="badge">竹南尋寶隊</span><button class="album" id="album-button"><span class="shard" aria-hidden="true"></span><span id="balance"></span></button></header>
+<header class="topbar"><span class="badge">竹南尋寶隊</span><button class="album" id="album-button"><span class="shard" aria-hidden="true"></span><span id="balance"></span></button><button type="button" id="sound" aria-label="遊戲音訊" aria-pressed="true">♫</button></header>
 <section class="board" aria-label="問答秀題板"><div class="board-head" hidden></div><div class="board-body" id="board"></div></section>
 <section class="desk" aria-label="街機作答區" id="desk"></section>
 </main>
@@ -218,6 +220,7 @@ function start(){
   const required=[...byCategory.values()];
   round=shuffle(required.concat(pool.filter(item=>!required.includes(item)).slice(0,10-required.length)));
   history=[];index=0;
+  openAudio();cue("start");
   albumButton.disabled=true;
   showQuestion();
 }
@@ -283,7 +286,7 @@ async function showQuestion(){
     return option;
   });
   fitOptions();
-  for(const option of options){await wait(330);option.hidden=false;}
+  for(const option of options){await wait(330);option.hidden=false;cue("option");}
   await wait(180);
   deadline=performance.now()+10000;phase="answer";
   if(!portrait.matches)pausedAt=performance.now();
@@ -304,6 +307,8 @@ function updateClock(){
 function paintClock(seconds){
   const clock=desk.querySelector(".clock");
   const display=clock.querySelector("span");
+  if(seconds!==lastSecond&&seconds>=1&&seconds<=3&&phase==="answer")cue("tick");
+  lastSecond=seconds;
   display.textContent=String(seconds).padStart(2,"0");
   clock.querySelectorAll(".bulbs i").forEach((bulb,i)=>bulb.classList.toggle("lit",i<seconds));
 }
@@ -316,6 +321,7 @@ function answer(selected){
     paintClock(0);
   }
   const item=round[index],correct=selected===item.answer;
+  cue(correct?"correct":selected===null?"late":"wrong");
   history.push({status:correct?"win":selected===null?"late":"miss",fragments:0});
   desk.querySelectorAll(".option").forEach(option=>option.disabled=true);
   route();
@@ -337,7 +343,8 @@ function treasure(area){
       box.classList.add("open");
       box.insertAdjacentHTML("beforeend",'<span class="shard" aria-hidden="true"></span>');
       history[index].fragments=amount;
-      const unlocked=collect(amount),message=area.querySelector('[role="status"]');
+      const unlocked=collect(amount);cue(unlocked?"card":"chest");
+      const message=area.querySelector('[role="status"]');
       message.hidden=false;
       message.textContent="取得 "+amount+" 個碎片"+(unlocked?"，已解鎖「竹南守護者」！":"！");
       if(unlocked)area.insertAdjacentHTML("beforeend",card("已解鎖"));
@@ -355,7 +362,7 @@ function onward(area){
   });
 }
 function finish(){
-  phase="result";$(".game").dataset.screen="result";albumButton.disabled=false;head.hidden=true;
+  phase="result";cue("finish");$(".game").dataset.screen="result";albumButton.disabled=false;head.hidden=true;
   const wins=history.filter(item=>item.status==="win").length,total=history.reduce((sum,item)=>sum+item.fragments,0);
   board.innerHTML='<div class="outro"><h2 tabindex="-1">探險完成</h2><div class="summary"><div><strong>'+wins+' / '+round.length+'</strong>答對題數</div><div><strong>+'+total+'</strong>至尊卡碎片</div></div></div>';
   desk.replaceChildren();
@@ -416,7 +423,7 @@ function fitDialog(dialog){
 }
 function updateGate(){
   const locked=isLine||!portrait.matches;
-  $(".game").inert=locked;
+  $(".game").inert=locked;syncSound();
   if(locked){
     if(phase==="answer"&&pausedAt===null)pausedAt=performance.now();
     gate.querySelector("h2").textContent=isLine?"請用系統瀏覽器開啟":"請轉回直式";
@@ -443,6 +450,69 @@ sync();
 board.innerHTML='<div class="cover"><h1 class="title">竹南文化問答秀</h1><p>答對開箱，集滿碎片解鎖至尊卡。</p></div>';
 desk.innerHTML='<div class="launch"><p class="brief">每站有 10 秒作答。答對就能開箱，集滿 100 個碎片兌換「竹南守護者」至尊卡。</p></div>';
 appendButton(desk.firstElementChild,"開始挑戰　▶",start);
+const sound=$("#sound");
+const preference="zhunan-hunt-muted";
+let audio,music,effects,timer,nextNote,step=0,lastSecond=0,muted=false;
+try{muted=localStorage.getItem(preference)==="1";}catch{}
+const melody=[72,0,76,79,74,0,76,0,72,76,81,79,76,0,74,0,69,0,72,76,74,0,72,0,67,71,74,76,79,0,74,0];
+const jingles={start:[67,72,76],option:[83],tick:[88],correct:[72,76,79,84],wrong:[61,56],late:[65,60,53],chest:[72,79,84,88],card:[72,76,79,84,88,91],finish:[60,67,72,76,84]};
+function canPlay(){return !muted&&!document.hidden&&!isLine&&portrait.matches;}
+function openAudio(){
+  if(!canPlay())return;
+  const Context=window.AudioContext||window.webkitAudioContext;
+  if(!Context)return;
+  try{
+    if(!audio){
+      audio=new Context();music=audio.createGain();effects=audio.createGain();
+      music.connect(audio.destination);effects.connect(audio.destination);
+    }
+    audio.resume().then(syncSound).catch(()=>{});
+    syncSound();
+  }catch{}
+}
+function syncSound(){
+  if(!audio)return;
+  const active=canPlay();
+  music.gain.value=active ? .32 : 0;effects.gain.value=active ? .57 : 0;
+  if(!active){clearInterval(timer);timer=null;return;}
+  if(audio.state!=="running"||timer)return;
+  nextNote=audio.currentTime+.04;timer=setInterval(schedule,45);schedule();
+}
+function note(bus,pitch,when,length,volume,type){
+  const wave=audio.createOscillator(),env=audio.createGain();
+  wave.type=type;wave.frequency.value=440*2**((pitch-69)/12);
+  env.gain.setValueAtTime(.0001,when);
+  env.gain.exponentialRampToValueAtTime(volume,when+.012);
+  env.gain.exponentialRampToValueAtTime(.0001,when+length);
+  wave.connect(env);env.connect(bus);wave.start(when);wave.stop(when+length+.02);
+}
+function schedule(){
+  if(audio.state!=="running")return;
+  if(nextNote<audio.currentTime)nextNote=audio.currentTime+.025;
+  while(nextNote<audio.currentTime+.13){
+    const position=step%melody.length;
+    if(melody[position])note(music,melody[position],nextNote,.14,.074,"square");
+    if(position%2===0)note(music,[48,45,53,55][Math.floor(position/8)]+(position%4===2?7:0),nextNote,.21,.15,"triangle");
+    nextNote+=.205;step++;
+  }
+}
+function cue(name){
+  if(!audio||!canPlay()||audio.state!=="running")return;
+  const quiet=name==="option"||name==="tick";
+  jingles[name].forEach((pitch,i)=>note(effects,pitch,audio.currentTime+.02+i*.08,quiet?.09:.22,quiet?.1:.16,quiet?"square":"triangle"));
+}
+function labelSound(){
+  sound.textContent=muted?"♫×":"♫";
+  sound.setAttribute("aria-pressed",String(!muted));
+  sound.title=muted?"開啟音訊":"靜音";
+}
+sound.onclick=()=>{
+  muted=!muted;
+  try{localStorage.setItem(preference,muted?"1":"0");}catch{}
+  labelSound();syncSound();if(!muted)openAudio();
+};
+document.addEventListener("visibilitychange",syncSound);
+labelSound();
 updateGate();
 </script>
 </body>
