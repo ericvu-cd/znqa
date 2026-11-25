@@ -166,6 +166,12 @@ dialog .card{width:min(147px,44vw);max-width:100%;margin:6px auto}
 .card.award{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:min(180px,52vw);aspect-ratio:auto;transform:none;border:0;background:none;box-shadow:none;margin:8px auto;color:#fff4da}
 .award img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain;filter:drop-shadow(0 5px 8px #11091d)}
 .award small{color:#ead3ff}
+.choices:not(.binary){grid-template:repeat(2,minmax(0,1fr))/repeat(2,minmax(0,1fr));gap:6px;padding:4px}
+.choices:not(.binary) .option{min-width:0;gap:5px;padding:4px 6px;font-size:clamp(16px,4.7cqw,23px);line-height:1.16;border-radius:11px}
+.choices:not(.binary) .option b{width:20px;height:20px;font-size:.7rem}
+.choices:not(.binary) .option:nth-child(2){background:linear-gradient(#147e77,#0c4e4f)}
+.choices:not(.binary) .option:nth-child(3){background:linear-gradient(#a83e58,#75253c)}
+.choices:not(.binary) .option:nth-child(4){background:linear-gradient(#79602f,#513517)}
 </style>
 </head>
 <body>
