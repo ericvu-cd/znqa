@@ -202,11 +202,14 @@ dialog .card{width:min(147px,44vw);max-width:100%;margin:6px auto}
 }
 .binary .option:active{transform:none}
 @keyframes binary-reveal{from{opacity:0}to{opacity:1}}
+#prize-chest{position:absolute;z-index:3;left:22.5%;top:81.4%;width:32%;height:12.5%;padding:0;border:0;background:transparent;border-radius:12px}
+#prize-chest.ready:not(:disabled){box-shadow:0 0 16px #f4baff,inset 0 0 12px #f4baff66;outline:2px solid #f8d3ff}
+#prize-chest.ready:not(:disabled)::after{content:"可兌換";position:absolute;top:-7px;left:10%;right:10%;border:1px solid #e7b2ff;border-radius:25px;background:#41165f;color:#fff1ff;font-size:clamp(10px,3.15cqw,16px);line-height:1.4}
 </style>
 </head>
 <body>
 <main class="game" data-screen="home">
-<header class="topbar"><span class="badge">竹南尋寶隊</span><button class="album" id="album-button"><span class="shard" aria-hidden="true"></span><span id="balance"></span></button><button type="button" id="sound" aria-label="遊戲音訊" aria-pressed="true">♫</button></header>
+<header class="topbar"><span class="badge">竹南尋寶隊</span><button class="album" id="album-button"><span class="shard" aria-hidden="true"></span><span id="balance"></span></button><button type="button" id="sound" aria-label="遊戲音訊" aria-pressed="true">♫</button><button type="button" id="prize-chest" aria-label="寶箱兌換至尊徽章"></button></header>
 <section class="board" aria-label="問答秀題板"><div class="board-head" hidden></div><div class="board-body" id="board"></div></section>
 <section class="desk" aria-label="街機作答區" id="desk"></section>
 </main>
@@ -221,6 +224,8 @@ const key="zhunan-hunt-collection-v1";
 const $=selector=>document.querySelector(selector);
 const board=$("#board"),desk=$("#desk"),head=$(".board-head"),feedback=$("#feedback"),album=$("#album"),albumButton=$("#album-button");
 const motion=matchMedia("(prefers-reduced-motion: reduce)");
+const prizeChest=$("#prize-chest");
+const badgeCost=100;
 const gate=$("#gate"),portrait=matchMedia("(orientation: portrait)");
 const isLine=/\bLine\//i.test(navigator.userAgent);
 let pausedAt=null;
@@ -228,21 +233,35 @@ let inventory=load(),canSave=true,round=[],history=[],index=0,phase="home",deadl
 function load(){
   try{
     const saved=JSON.parse(localStorage.getItem(key));
-    if(Number.isSafeInteger(saved?.fragments)&&saved.fragments>=0&&saved.fragments<100&&Number.isSafeInteger(saved.cards)&&saved.cards>=0)return saved;
+    if(Number.isSafeInteger(saved?.fragments)&&saved.fragments>=0&&Number.isSafeInteger(saved.cards)&&saved.cards>=0)return saved;
   }catch{}
   return {fragments:0,cards:0};
 }
 function sync(){
   $("#balance").textContent=inventory.fragments+"/100";
-  albumButton.setAttribute("aria-label","至尊徽章收藏 "+inventory.cards+" 張，碎片 "+inventory.fragments+" / 100");
+  albumButton.setAttribute("aria-label","至尊徽章收藏 "+inventory.cards+" 枚，碎片 "+inventory.fragments+" / 100");
+  const ready=inventory.fragments>=badgeCost;
+  prizeChest.classList.toggle("ready",ready);
+  prizeChest.setAttribute("aria-label",ready?"寶箱，已有足夠碎片兌換至尊徽章":"寶箱，查看至尊徽章兌換條件");
+}
+function saveInventory(){
+  try{localStorage.setItem(key,JSON.stringify(inventory));}catch{canSave=false;}
+  sync();
 }
 function collect(amount){
   if(canSave)inventory=load();
-  const total=inventory.fragments+amount, unlocked=Math.floor(total/100);
-  inventory={fragments:total%100,cards:inventory.cards+unlocked};
-  try{localStorage.setItem(key,JSON.stringify(inventory));}catch{canSave=false;}
-  sync();
-  return unlocked;
+  inventory.fragments+=amount;
+  saveInventory();
+}
+function redeem(){
+  if(canSave)inventory=load();
+  if(inventory.fragments<badgeCost){showAlbum(true);return;}
+  inventory.fragments-=badgeCost;
+  inventory.cards++;
+  saveInventory();
+  openAudio();
+  cue("card");
+  showAlbum(true,true);
 }
 function shuffle(values){
   const items=[...values];
@@ -261,6 +280,7 @@ function start(){
   history=[];index=0;
   openAudio();cue("start");
   albumButton.disabled=true;
+  prizeChest.disabled=true;
   showQuestion();
 }
 function appendButton(parent,label,onClick,className="main-button"){
@@ -271,14 +291,19 @@ function appendButton(parent,label,onClick,className="main-button"){
 function card(label){
   return '<div class="card award"><img src="./supreme-badge.png" alt="紫晶、竹枝與海浪浮雕的圓形徽章"><strong>竹南守護者</strong><small>'+label+'</small></div>';
 }
-function showAlbum(){
+function showAlbum(fromChest=false,redeemed=false){
   if(canSave)inventory=load();
   sync();
-  album.innerHTML='<h2 id="album-title">至尊徽章收藏</h2>'+card(inventory.cards?"已收藏 "+inventory.cards+" 張":"卡面預覽")+
-    '<p>碎片 '+inventory.fragments+' / 100，每滿 100 個自動兌換。</p>';
+  const title=redeemed?"已兌換至尊徽章！":fromChest?"寶箱兌換":"至尊徽章收藏";
+  const hint=inventory.fragments>=badgeCost?(fromChest?"可花 100 個碎片兌換一枚徽章。":"已有足夠碎片，可點舞台下方的寶箱兌換。"):"集滿 100 個碎片後，即可點寶箱兌換。";
+  album.innerHTML='<h2 id="album-title">'+title+'</h2>'+card(inventory.cards?"已收藏 "+inventory.cards+" 枚":"徽章預覽")+
+    '<p>碎片 '+inventory.fragments+' / 100。'+hint+'</p>';
+  if(fromChest&&inventory.fragments>=badgeCost)appendButton(album,"用 100 片兌換一枚",redeem);
   if(!canSave)album.insertAdjacentHTML("beforeend","<p>此瀏覽器無法儲存收藏。</p>");
   appendButton(album,"返回",()=>album.close());
-  album.showModal();fitDialog(album);
+  if(!album.open)album.showModal();
+  fitDialog(album);
+  album.querySelector("button").focus({preventScroll:true});
 }
 function route(){
   head.hidden=false;
@@ -382,11 +407,10 @@ function treasure(area){
       box.classList.add("open");
       box.insertAdjacentHTML("beforeend",'<span class="shard" aria-hidden="true"></span>');
       history[index].fragments=amount;
-      const unlocked=collect(amount);cue(unlocked?"card":"chest");
+      collect(amount);cue("chest");
       const message=area.querySelector('[role="status"]');
       message.hidden=false;
-      message.textContent="取得 "+amount+" 個碎片"+(unlocked?"，已解鎖「竹南守護者」！":"！");
-      if(unlocked)area.insertAdjacentHTML("beforeend",card("已解鎖"));
+      message.textContent="取得 "+amount+" 個碎片！"+(inventory.fragments>=badgeCost?" 結算後可點下方寶箱兌換徽章。":"");
       if(!canSave)area.insertAdjacentHTML("beforeend","<p>收藏只保留到關閉本頁。</p>");
       const next=onward(area);
       fitDialog(feedback);next.focus({preventScroll:true});
@@ -401,7 +425,7 @@ function onward(area){
   });
 }
 function finish(){
-  phase="result";cue("finish");$(".game").dataset.screen="result";albumButton.disabled=false;head.hidden=true;
+  phase="result";cue("finish");$(".game").dataset.screen="result";albumButton.disabled=false;prizeChest.disabled=false;head.hidden=true;
   const wins=history.filter(item=>item.status==="win").length,total=history.reduce((sum,item)=>sum+item.fragments,0);
   board.innerHTML='<div class="outro"><h2 tabindex="-1">探險完成</h2><div class="summary"><div><strong>'+wins+' / '+round.length+'</strong>答對題數</div><div><strong>+'+total+'</strong>至尊徽章碎片</div></div></div>';
   desk.replaceChildren();
@@ -484,10 +508,12 @@ gate.addEventListener("cancel",event=>event.preventDefault());
 portrait.addEventListener("change",updateGate);
 window.addEventListener("resize",updateGate);
 feedback.addEventListener("cancel",event=>event.preventDefault());
-albumButton.onclick=showAlbum;
+albumButton.onclick=()=>showAlbum();
+prizeChest.onclick=()=>showAlbum(true);
+window.addEventListener("storage",event=>{if(event.key===key&&canSave){inventory=load();sync();}});
 sync();
 board.innerHTML='<div class="cover"><h1 class="title">竹南文化問答秀</h1><p>答對開箱，集滿碎片解鎖至尊徽章。</p></div>';
-desk.innerHTML='<div class="launch"><p class="brief">每站有 10 秒作答。答對就能開箱，集滿 100 個碎片兌換「竹南守護者」至尊徽章。</p></div>';
+desk.innerHTML='<div class="launch"><p class="brief">每站有 10 秒作答。答對就能開箱，集滿 100 個碎片，再點下方寶箱兌換至尊徽章。</p></div>';
 appendButton(desk.firstElementChild,"開始挑戰　▶",start);
 const sound=$("#sound");
 const preference="zhunan-hunt-muted";
