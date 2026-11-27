@@ -110,7 +110,7 @@ dialog{color:#fff0d1;background:linear-gradient(#322047,#171631);border-color:#c
 .topbar{display:contents}
 .badge{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);padding:0}
 .album{position:absolute;z-index:3;left:62.1%;width:25.4%;height:4.3%;top:88%;min-height:0;padding:0 1%;justify-content:center;gap:1%;border:0;border-radius:0;background:linear-gradient(115deg,#60204d,#30132f);box-shadow:none;font-size:clamp(.7rem,4.2cqw,1.3rem);white-space:nowrap}
-.album::before{content:"拼圖";margin-right:4%}.album .shard{display:none}.album:disabled{opacity:1}
+.album::before{content:"收藏";margin-right:4%}.album .shard{display:none}.album:disabled{opacity:1}
 .board{position:absolute;display:block;left:9.25%;top:28.85%;width:81%;height:19.05%;border:0;border-radius:8px;background:linear-gradient(180deg,#ffeec7 0 49.2%,#cda46e 49.6%,#f7dc9e 50.2%,#ffeec5 100%);box-shadow:inset 0 0 15px #986e4760;overflow:visible}
 .board-body{position:absolute;inset:0;padding:4% 5%;display:grid;align-content:safe center}
 .question{font-size:clamp(1.06rem,6.4cqw,2.45rem);text-align:center;color:#261605;line-height:1.4;letter-spacing:.01em}
@@ -247,6 +247,12 @@ dialog .card{width:min(147px,44vw);max-width:100%;margin:6px auto}
 .sign-lamp::after{background:radial-gradient(circle,#fff9d3 0 13%,#ffe690a8 24%,#ff9f3859 48%,transparent 72%);animation-name:lamp-bright}
 @keyframes lamp-dim{0%,100%{opacity:.93}45%,58%{opacity:0}}
 @keyframes lamp-bright{0%,100%{opacity:0}45%,58%{opacity:1}}
+
+.album{font-size:clamp(11px,3.7cqw,17px);font-weight:900;color:#fff3dc}
+#prize-chest.ready:not(:disabled){outline:0;box-shadow:none}
+#prize-chest.ready:not(:disabled)::before{content:"";position:absolute;inset:2% 0 3% 0;border:2px solid #ffd275;border-radius:12px;box-shadow:0 0 13px #ffa33c,inset 0 0 10px #e9641970}
+#prize-chest.ready:not(:disabled)::after{content:"領取至尊徽章";top:4%;left:113%;right:-109%;padding:6px 3px;border-radius:8px;border:1px solid #fff4bd;background:linear-gradient(#ffed9e,#ffbb47);color:#3c1825;box-shadow:0 2px 0 #b56126,0 0 13px #ff9a37b0;font-size:clamp(13px,4cqw,21px);font-weight:950;white-space:nowrap}
+.game:not([data-screen=quiz]):has(#prize-chest.ready) #puzzle-meter{visibility:hidden}
 </style>
 </head>
 <body>
@@ -276,9 +282,10 @@ let inventory=load(),canSave=true,round=[],history=[],index=0,phase="home",deadl
 function load(){
   try{
     const saved=JSON.parse(localStorage.getItem(key));
-    if(Number.isSafeInteger(saved?.cards)&&saved.cards>=0&&Array.isArray(saved.pieces)&&
+    if((saved?.cards===0||saved?.cards===1)&&Array.isArray(saved.pieces)&&
       saved.pieces.every(i=>Number.isInteger(i)&&i>=0&&i<puzzleSize)){
-      return {cards:saved.cards,pieces:[...new Set(saved.pieces)]};
+      const pieces=[...new Set(saved.pieces)];
+      if(saved.cards===0||pieces.length===puzzleSize)return {cards:saved.cards,pieces};
     }
   }catch{}
   return {cards:0,pieces:[]};
@@ -286,8 +293,9 @@ function load(){
 function sync(){
   $("#balance").textContent=inventory.pieces.length+"/9";
   $("#puzzle-meter").innerHTML=renderPuzzle();
-  albumButton.setAttribute("aria-label","至尊徽章收藏 "+inventory.cards+" 枚，拼圖 "+inventory.pieces.length+" / 9");
-  prizeChest.classList.toggle("ready",inventory.pieces.length===puzzleSize);
+  albumButton.setAttribute("aria-label",inventory.cards?"至尊徽章收藏，已領取":"至尊徽章收藏，拼圖 "+inventory.pieces.length+" / 9");
+  prizeChest.classList.toggle("ready",!inventory.cards&&inventory.pieces.length===puzzleSize);
+  prizeChest.setAttribute("aria-label",inventory.cards?"寶箱，查看已收藏的至尊徽章":"寶箱，查看拼圖與領取獎勵");
 }
 function saveInventory(){
   try{localStorage.setItem(key,JSON.stringify(inventory));}catch{canSave=false;}
@@ -304,9 +312,8 @@ function drawPiece(){
 }
 function claimBadge(){
   if(canSave)inventory=load();
-  if(inventory.pieces.length!==puzzleSize){showAlbum(true);return;}
-  inventory.pieces=[];
-  inventory.cards++;
+  if(inventory.cards||inventory.pieces.length!==puzzleSize){showAlbum(true);return;}
+  inventory.cards=1;
   saveInventory();
   openAudio();
   cue("card");
@@ -344,12 +351,12 @@ function showAlbum(fromChest=false,claimed=false){
   if(canSave)inventory=load();
   sync();
   const complete=inventory.pieces.length===puzzleSize;
-  const title=claimed?"已領取至尊徽章！":fromChest?"竹南守護者拼圖":"至尊徽章收藏";
+  const title=claimed?"已領取至尊徽章！":inventory.cards?"至尊徽章收藏":fromChest?"竹南守護者拼圖":"至尊徽章收藏";
   album.innerHTML='<h2 id="album-title">'+title+'</h2>'+
-    (claimed||(!fromChest&&inventory.cards)?card("已收藏 "+inventory.cards+" 枚"):renderPuzzle())+
-    '<p>拼圖 '+inventory.pieces.length+' / 9 · 已收藏 '+inventory.cards+' 枚</p>'+
-    '<p>'+(complete?"點寶箱即可領取徽章。":"集齊 9 片不同拼圖即可領取徽章。")+'</p>';
-  if(fromChest&&complete)appendButton(album,"領取至尊徽章",claimBadge);
+    (inventory.cards?card("已收藏"):renderPuzzle())+
+    '<p>拼圖 '+inventory.pieces.length+' / 9</p>'+
+    '<p>'+(inventory.cards?"「竹南守護者」已收入收藏。":complete?(fromChest?"9 片拼圖已集齊。":"點下方舞台寶箱即可領取徽章。"):"集齊 9 片不同拼圖，即可領取徽章。")+'</p>';
+  if(fromChest&&complete&&!inventory.cards)appendButton(album,"領取至尊徽章",claimBadge);
   if(!canSave)album.insertAdjacentHTML("beforeend","<p>此瀏覽器無法儲存收藏。</p>");
   appendButton(album,"返回",()=>album.close());
   if(!album.open)album.showModal();
@@ -457,7 +464,7 @@ async function answer(selected){
   feedback.querySelector("strong").textContent="正確答案是「"+item.options[item.answer]+"」";
   feedback.querySelector(".detail").textContent=item.explanation;
   const actions=feedback.querySelector("#feedback-actions");
-  if(correct)appendButton(actions,"選寶箱　→",treasure);else onward(actions);
+  if(correct&&!inventory.cards)appendButton(actions,"選寶箱　→",treasure);else onward(actions);
   if(correct&&!motion.matches){
     const stage=$(".game");
     stage.classList.add("prize-glow");
@@ -509,7 +516,7 @@ function finish(){
     const row=document.createElement("li"),label=document.createElement("strong"),result=document.createElement("span");
     label.textContent=(i+1)+"　"+item.category;
     const entry=history[i];
-    result.textContent=entry.status==="win"?({new:"新拼圖",duplicate:"重複片",empty:"空箱"}[entry.reward]):entry.status==="late"?"逾時":"答錯";
+    result.textContent=entry.status==="win"?({new:"新拼圖",duplicate:"重複片",empty:"空箱"}[entry.reward]||"答對"):entry.status==="late"?"逾時":"答錯";
     row.append(label,result);log.append(row);
   });
   desk.append(log);
