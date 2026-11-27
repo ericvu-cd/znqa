@@ -236,9 +236,9 @@ dialog .card{width:min(147px,44vw);max-width:100%;margin:6px auto}
 [data-screen=result] .summary strong{font-size:clamp(20px,5.4cqw,28px);margin-bottom:2px}
 .stage-lights{position:absolute;inset:0;pointer-events:none;z-index:1}
 .stage-lights i{position:absolute;left:var(--x);top:var(--y);width:5cqw;aspect-ratio:1;translate:-50% -50%;border-radius:50%;background:radial-gradient(circle,#fff5ce 0%,#ffd17a99 23%,#ff8c2244 49%,transparent 72%);opacity:0}
-.stage-lights .prize-lamp{width:6.4cqw}
-.prize-glow .prize-lamp{animation:prize-flare .66s calc(var(--delay) * .18) ease-out both}
-@keyframes prize-flare{0%,100%{opacity:0}32%{opacity:1}}
+.stage-lights .prize-lamp{width:11cqw;background:radial-gradient(circle,#fffbe9 0 12%,#ffe17bcc 24%,#ff9a566f 46%,transparent 72%)}
+.prize-glow .prize-lamp{animation:prize-flare .47s calc(var(--delay) * .45) ease-out both}
+@keyframes prize-flare{0%,100%{opacity:0;scale:.7}25%{opacity:1;scale:1.2}55%{opacity:.85;scale:1}}
 @media(prefers-reduced-motion:reduce){.stage-lights{display:none}}
 /* Dim the photographed bulb itself between highlights. */
 .stage-lights .sign-lamp{background:none;opacity:1;animation:none}
@@ -437,7 +437,7 @@ function paintClock(seconds){
   display.textContent=String(seconds).padStart(2,"0");
   clock.querySelectorAll(".bulbs i").forEach((bulb,i)=>bulb.classList.toggle("lit",i<seconds));
 }
-function answer(selected){
+async function answer(selected){
   if(phase!=="answer"||pausedAt!==null||!portrait.matches)return;
   phase="feedback";clearInterval(ticker);
   if(performance.now()>=deadline)selected=null;
@@ -447,11 +447,7 @@ function answer(selected){
   }
   const item=round[index],correct=selected===item.answer;
   cue(correct?"correct":selected===null?"late":"wrong");
-  if(correct){
-    const stage=$(".game");
-    stage.classList.add("prize-glow");
-    setTimeout(()=>stage.classList.remove("prize-glow"),950);
-  }
+
   history.push({status:correct?"win":selected===null?"late":"miss",reward:null});
   desk.querySelectorAll(".option").forEach(option=>option.disabled=true);
   route();
@@ -462,6 +458,13 @@ function answer(selected){
   feedback.querySelector(".detail").textContent=item.explanation;
   const actions=feedback.querySelector("#feedback-actions");
   if(correct)appendButton(actions,"選寶箱　→",treasure);else onward(actions);
+  if(correct&&!motion.matches){
+    const stage=$(".game");
+    stage.classList.add("prize-glow");
+    await wait(1120);
+    stage.classList.remove("prize-glow");
+  }
+  while(gate.open)await new Promise(resolve=>gate.addEventListener("close",resolve,{once:true}));
   feedback.showModal();fitDialog(feedback);title.focus({preventScroll:true});
 }
 function treasure(){
