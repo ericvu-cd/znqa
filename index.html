@@ -234,11 +234,19 @@ dialog .card{width:min(147px,44vw);max-width:100%;margin:6px auto}
 [data-screen=result] .outro h2{font-size:clamp(22px,6cqw,30px);line-height:1.12}
 [data-screen=result] .summary div{font-size:clamp(16px,4.3cqw,21px);line-height:1.1;padding:4px 8px}
 [data-screen=result] .summary strong{font-size:clamp(20px,5.4cqw,28px);margin-bottom:2px}
+.stage-lights{position:absolute;inset:0;pointer-events:none;z-index:1}
+.stage-lights i{position:absolute;left:var(--x);top:var(--y);width:5cqw;aspect-ratio:1;translate:-50% -50%;border-radius:50%;background:radial-gradient(circle,#fff5ce 0%,#ffd17a99 23%,#ff8c2244 49%,transparent 72%);opacity:0}
+.stage-lights .sign-lamp{animation:sign-glow 3.8s calc(0s - var(--delay)) ease-in-out infinite}
+.stage-lights .prize-lamp{width:6.4cqw}
+.prize-glow .prize-lamp{animation:prize-flare .66s calc(var(--delay) * .18) ease-out both}
+@keyframes sign-glow{0%,100%{opacity:.07}50%{opacity:.88}}
+@keyframes prize-flare{0%,100%{opacity:0}32%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.stage-lights{display:none}}
 </style>
 </head>
 <body>
 <main class="game" data-screen="home">
-<header class="topbar"><span class="badge">竹南尋寶隊</span><button class="album" id="album-button"><span class="shard" aria-hidden="true"></span><span id="balance"></span></button><button type="button" id="sound" aria-label="遊戲音訊" aria-pressed="true">♫</button><button type="button" id="prize-chest" aria-label="寶箱領取至尊徽章"></button><div id="puzzle-meter"></div></header>
+<div class="stage-lights" aria-hidden="true"><i class="sign-lamp" style="--x:16.230%;--y:7.629%;--delay:0.00s"></i><i class="sign-lamp" style="--x:20.363%;--y:6.810%;--delay:0.11s"></i><i class="sign-lamp" style="--x:24.899%;--y:6.242%;--delay:0.22s"></i><i class="sign-lamp" style="--x:29.536%;--y:5.927%;--delay:0.33s"></i><i class="sign-lamp" style="--x:34.375%;--y:5.738%;--delay:0.44s"></i><i class="sign-lamp" style="--x:39.315%;--y:5.612%;--delay:0.55s"></i><i class="sign-lamp" style="--x:44.456%;--y:5.485%;--delay:0.66s"></i><i class="sign-lamp" style="--x:55.847%;--y:5.485%;--delay:0.77s"></i><i class="sign-lamp" style="--x:60.685%;--y:5.549%;--delay:0.88s"></i><i class="sign-lamp" style="--x:65.625%;--y:5.738%;--delay:0.99s"></i><i class="sign-lamp" style="--x:70.363%;--y:5.990%;--delay:1.10s"></i><i class="sign-lamp" style="--x:75.101%;--y:6.305%;--delay:1.21s"></i><i class="sign-lamp" style="--x:79.637%;--y:6.747%;--delay:1.32s"></i><i class="sign-lamp" style="--x:83.669%;--y:7.692%;--delay:1.43s"></i><i class="sign-lamp" style="--x:84.778%;--y:10.214%;--delay:1.54s"></i><i class="sign-lamp" style="--x:84.173%;--y:12.673%;--delay:1.65s"></i><i class="sign-lamp" style="--x:82.762%;--y:15.259%;--delay:1.76s"></i><i class="sign-lamp" style="--x:79.839%;--y:16.393%;--delay:1.87s"></i><i class="sign-lamp" style="--x:75.302%;--y:16.204%;--delay:1.98s"></i><i class="sign-lamp" style="--x:70.766%;--y:15.952%;--delay:2.09s"></i><i class="sign-lamp" style="--x:65.726%;--y:15.763%;--delay:2.20s"></i><i class="sign-lamp" style="--x:60.685%;--y:15.574%;--delay:2.31s"></i><i class="sign-lamp" style="--x:55.544%;--y:15.511%;--delay:2.42s"></i><i class="sign-lamp" style="--x:50.000%;--y:15.448%;--delay:2.53s"></i><i class="sign-lamp" style="--x:44.456%;--y:15.511%;--delay:2.64s"></i><i class="sign-lamp" style="--x:39.315%;--y:15.637%;--delay:2.75s"></i><i class="sign-lamp" style="--x:34.375%;--y:15.763%;--delay:2.86s"></i><i class="sign-lamp" style="--x:29.637%;--y:16.015%;--delay:2.97s"></i><i class="sign-lamp" style="--x:24.899%;--y:16.204%;--delay:3.08s"></i><i class="sign-lamp" style="--x:20.363%;--y:16.393%;--delay:3.19s"></i><i class="sign-lamp" style="--x:17.238%;--y:15.259%;--delay:3.30s"></i><i class="sign-lamp" style="--x:15.927%;--y:12.736%;--delay:3.41s"></i><i class="sign-lamp" style="--x:15.222%;--y:10.214%;--delay:3.52s"></i><i class="prize-lamp" style="--x:10.988%;--y:94.136%;--delay:0.00s"></i><i class="prize-lamp" style="--x:13.306%;--y:94.767%;--delay:0.11s"></i><i class="prize-lamp" style="--x:16.935%;--y:95.334%;--delay:0.22s"></i><i class="prize-lamp" style="--x:23.185%;--y:95.776%;--delay:0.33s"></i><i class="prize-lamp" style="--x:30.544%;--y:96.280%;--delay:0.44s"></i><i class="prize-lamp" style="--x:39.113%;--y:96.532%;--delay:0.55s"></i><i class="prize-lamp" style="--x:48.488%;--y:96.721%;--delay:0.66s"></i><i class="prize-lamp" style="--x:57.964%;--y:96.595%;--delay:0.77s"></i><i class="prize-lamp" style="--x:66.734%;--y:96.406%;--delay:0.88s"></i><i class="prize-lamp" style="--x:74.597%;--y:96.028%;--delay:0.99s"></i><i class="prize-lamp" style="--x:81.351%;--y:95.586%;--delay:1.10s"></i><i class="prize-lamp" style="--x:86.190%;--y:94.893%;--delay:1.21s"></i><i class="prize-lamp" style="--x:88.911%;--y:94.262%;--delay:1.32s"></i></div><header class="topbar"><span class="badge">竹南尋寶隊</span><button class="album" id="album-button"><span class="shard" aria-hidden="true"></span><span id="balance"></span></button><button type="button" id="sound" aria-label="遊戲音訊" aria-pressed="true">♫</button><button type="button" id="prize-chest" aria-label="寶箱領取至尊徽章"></button><div id="puzzle-meter"></div></header>
 <section class="board" aria-label="問答秀題板"><div class="board-head" hidden></div><div class="board-body" id="board"></div></section>
 <section class="desk" aria-label="街機作答區" id="desk"></section>
 </main>
@@ -434,6 +442,11 @@ function answer(selected){
   }
   const item=round[index],correct=selected===item.answer;
   cue(correct?"correct":selected===null?"late":"wrong");
+  if(correct){
+    const stage=$(".game");
+    stage.classList.add("prize-glow");
+    setTimeout(()=>stage.classList.remove("prize-glow"),950);
+  }
   history.push({status:correct?"win":selected===null?"late":"miss",reward:null});
   desk.querySelectorAll(".option").forEach(option=>option.disabled=true);
   route();
