@@ -207,11 +207,29 @@ dialog .card{width:min(147px,44vw);max-width:100%;margin:6px auto}
 #prize-chest.ready:not(:disabled)::after{content:"可領取";position:absolute;top:-7px;left:10%;right:10%;border:1px solid #e7b2ff;border-radius:25px;background:#41165f;color:#fff1ff;font-size:clamp(10px,3.15cqw,16px);line-height:1.4}
 .puzzle{display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);gap:2px;width:min(190px,55vw);aspect-ratio:1;margin:8px auto;background:#140d25;border:1px solid #775894;border-radius:9px;padding:5px}
 .tile{background:#2b1b42;border-radius:3px}.tile.filled{background-image:url("./supreme-badge.png");background-size:300% 300%;background-repeat:no-repeat}
+
+#feedback h2{font-size:clamp(23px,6.3vw,30px);line-height:1.2}
+#feedback .note{font-size:clamp(17px,4.8vw,21px);line-height:1.5;padding:10px 11px;overflow-wrap:anywhere}
+#feedback .main-button{font-size:17px}
+#puzzle-meter{position:absolute;z-index:2;left:76%;top:81.3%;height:6.2%;aspect-ratio:1;transform:translateX(-50%);pointer-events:none}
+#puzzle-meter .puzzle{height:100%;width:100%;padding:2px;margin:0;gap:1px;border-radius:4px;box-shadow:0 0 8px #6332a9}
+#puzzle-meter .tile{border-radius:1px}
+.tile.highlight{outline:2px solid #ffe39b;outline-offset:-2px;z-index:1}
+.puzzle-prize{display:grid;grid-template-columns:1fr 1.24fr;align-items:center;gap:14px;padding:9px 0}
+.puzzle-prize .puzzle{width:100%;margin:0}
+.piece-preview{display:grid;justify-items:center;gap:5px;font-size:16px}
+.piece-preview .tile{display:block;width:min(100%,96px);aspect-ratio:1;border:2px solid #ecb1fb;box-shadow:0 0 17px #c262ff82;animation:piece-reveal .38s ease-out both}
+@keyframes piece-reveal{from{opacity:0;transform:translateY(13px) scale(.65) rotate(-12deg)}to{opacity:1;transform:none}}
+.treasure-empty{display:grid;place-items:center;min-height:102px;background:radial-gradient(ellipse,#65577655,transparent 63%)}
+.treasure-empty .chest{--size:132px;animation:empty-drop .35s ease-out both;filter:saturate(.5)}
+.treasure-empty .chest-light{opacity:0}
+@keyframes empty-drop{0%{transform:translateY(-6px) rotate(-4deg)}55%{transform:translateY(2px) rotate(3deg)}100%{transform:none}}
+.result-copy{font-size:17px;line-height:1.4}
 </style>
 </head>
 <body>
 <main class="game" data-screen="home">
-<header class="topbar"><span class="badge">竹南尋寶隊</span><button class="album" id="album-button"><span class="shard" aria-hidden="true"></span><span id="balance"></span></button><button type="button" id="sound" aria-label="遊戲音訊" aria-pressed="true">♫</button><button type="button" id="prize-chest" aria-label="寶箱領取至尊徽章"></button></header>
+<header class="topbar"><span class="badge">竹南尋寶隊</span><button class="album" id="album-button"><span class="shard" aria-hidden="true"></span><span id="balance"></span></button><button type="button" id="sound" aria-label="遊戲音訊" aria-pressed="true">♫</button><button type="button" id="prize-chest" aria-label="寶箱領取至尊徽章"></button><div id="puzzle-meter"></div></header>
 <section class="board" aria-label="問答秀題板"><div class="board-head" hidden></div><div class="board-body" id="board"></div></section>
 <section class="desk" aria-label="街機作答區" id="desk"></section>
 </main>
@@ -245,6 +263,7 @@ function load(){
 }
 function sync(){
   $("#balance").textContent=inventory.pieces.length+"/9";
+  $("#puzzle-meter").innerHTML=renderPuzzle();
   albumButton.setAttribute("aria-label","至尊徽章收藏 "+inventory.cards+" 枚，拼圖 "+inventory.pieces.length+" / 9");
   prizeChest.classList.toggle("ready",inventory.pieces.length===puzzleSize);
 }
@@ -304,13 +323,8 @@ function showAlbum(fromChest=false,claimed=false){
   sync();
   const complete=inventory.pieces.length===puzzleSize;
   const title=claimed?"已領取至尊徽章！":fromChest?"竹南守護者拼圖":"至尊徽章收藏";
-  const tiles=Array.from({length:puzzleSize},(_,i)=>{
-    const have=inventory.pieces.includes(i);
-    const pos=(i%3)*50+"% "+Math.floor(i/3)*50+"%";
-    return '<span class="tile'+(have?' filled':'')+'" style="background-position:'+pos+'" role="img" aria-label="第 '+(i+1)+' 片'+(have?'已收集':'未收集')+'"></span>';
-  }).join("");
   album.innerHTML='<h2 id="album-title">'+title+'</h2>'+
-    (claimed||(!fromChest&&inventory.cards)?card("已收藏 "+inventory.cards+" 枚"):'<div class="puzzle" role="group" aria-label="徽章拼圖">'+tiles+'</div>')+
+    (claimed||(!fromChest&&inventory.cards)?card("已收藏 "+inventory.cards+" 枚"):renderPuzzle())+
     '<p>拼圖 '+inventory.pieces.length+' / 9 · 已收藏 '+inventory.cards+' 枚</p>'+
     '<p>'+(complete?"點寶箱即可領取徽章。":"集齊 9 片不同拼圖即可領取徽章。")+'</p>';
   if(fromChest&&complete)appendButton(album,"領取至尊徽章",claimBadge);
@@ -319,6 +333,16 @@ function showAlbum(fromChest=false,claimed=false){
   if(!album.open)album.showModal();
   fitDialog(album);
   album.querySelector("button").focus({preventScroll:true});
+}
+function piecePosition(i){
+  return (i%3)*50+"% "+Math.floor(i/3)*50+"%";
+}
+function renderPuzzle(highlight=-1){
+  const tiles=Array.from({length:puzzleSize},(_,i)=>{
+    const have=inventory.pieces.includes(i);
+    return '<span class="tile'+(have?' filled':'')+(i===highlight?' highlight':'')+'" style="background-position:'+piecePosition(i)+'" role="img" aria-label="第 '+(i+1)+' 片'+(have?'已收集':'未收集')+'"></span>';
+  }).join("");
+  return '<div class="puzzle" role="group" aria-label="徽章拼圖，已收集 '+inventory.pieces.length+' / 9">'+tiles+'</div>';
 }
 function route(){
   head.hidden=false;
@@ -410,30 +434,33 @@ function answer(selected){
   feedback.querySelector("strong").textContent="正確答案是「"+item.options[item.answer]+"」";
   feedback.querySelector(".detail").textContent=item.explanation;
   const actions=feedback.querySelector("#feedback-actions");
-  if(correct)treasure(actions);else onward(actions);
+  if(correct)appendButton(actions,"選寶箱　→",treasure);else onward(actions);
   feedback.showModal();fitDialog(feedback);title.focus({preventScroll:true});
 }
-function treasure(area){
-  area.innerHTML='<p class="reward-line">挑一個寶箱，看看有沒有拼圖。</p><div class="rewards"></div><p class="reward-line" role="status" hidden></p>';
-  const boxes=area.querySelector(".rewards");
-  [1,2,3].forEach(i=>{
-    const box=appendButton(boxes,"",()=>{
-      for(const choice of boxes.children)choice.disabled=true;
-      box.classList.add("open");
-      const reward=drawPiece();
-      history[index].reward=reward.kind;
-      cue(reward.kind==="empty"?"wrong":"chest");
-      const message=area.querySelector('[role="status"]');
-      message.hidden=false;
-      message.textContent=reward.kind==="empty"?"這次是空箱。":reward.kind==="duplicate"?
-        "第 "+(reward.piece+1)+" 片已收集，抽到重複片。":"抽到第 "+(reward.piece+1)+" 片新拼圖！";
-      if(inventory.pieces.length===puzzleSize)message.textContent+=" 結算後可點寶箱領取徽章。";
-      if(!canSave)area.insertAdjacentHTML("beforeend","<p>收藏只保留到關閉本頁。</p>");
-      const next=onward(area);
-      fitDialog(feedback);next.focus({preventScroll:true});
-    },"loot");
+function treasure(){
+  feedback.innerHTML='<h2 id="feedback-title" tabindex="-1">選一個寶箱</h2><div class="rewards"></div>';
+  const boxes=feedback.querySelector(".rewards");
+  for(let i=1;i<=3;i++){
+    const box=appendButton(boxes,"",revealTreasure,"loot");
     box.innerHTML=chest+"寶箱 "+i;
-  });
+  }
+  fitDialog(feedback);
+  feedback.querySelector("h2").focus({preventScroll:true});
+}
+function revealTreasure(){
+  const reward=drawPiece(),empty=reward.kind==="empty";
+  history[index].reward=reward.kind;
+  cue(empty?"wrong":"chest");
+  const title=empty?"這次是空箱":reward.kind==="new"?"找到新拼圖！":"抽到重複片";
+  const visual=empty?'<div class="treasure-empty open" role="img" aria-label="打開的空寶箱">'+chest+'</div>':
+    '<div class="puzzle-prize"><div class="piece-preview"><span class="tile filled" style="background-position:'+piecePosition(reward.piece)+'" role="img" aria-label="第 '+(reward.piece+1)+' 片圖案"></span><strong>第 '+(reward.piece+1)+' 片</strong></div>'+renderPuzzle(reward.piece)+'</div>';
+  const description=empty?"寶箱裡沒有拼圖。":reward.kind==="duplicate"?"這片已收集，拼圖進度維持原樣。":"這片已放入拼圖盤。";
+  feedback.innerHTML='<h2 id="feedback-title" tabindex="-1">'+title+'</h2>'+visual+'<p class="result-copy">'+description+' <strong>'+inventory.pieces.length+' / 9</strong></p>';
+  if(inventory.pieces.length===puzzleSize)feedback.insertAdjacentHTML("beforeend","<p>結算後可點寶箱領取徽章。</p>");
+  if(!canSave)feedback.insertAdjacentHTML("beforeend","<p>收藏只保留到關閉本頁。</p>");
+  onward(feedback);
+  fitDialog(feedback);
+  feedback.querySelector("h2").focus({preventScroll:true});
 }
 function onward(area){
   return appendButton(area,index+1===round.length?"查看探險紀錄":"前往下一站　→",()=>{
