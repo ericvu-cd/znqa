@@ -225,6 +225,15 @@ dialog .card{width:min(147px,44vw);max-width:100%;margin:6px auto}
 .treasure-empty .chest-light{opacity:0}
 @keyframes empty-drop{0%{transform:translateY(-6px) rotate(-4deg)}55%{transform:translateY(2px) rotate(3deg)}100%{transform:none}}
 .result-copy{font-size:17px;line-height:1.4}
+/* Use the idle countdown area for larger results without moving the prize podium. */
+[data-screen=result] .desk::before{display:none}
+[data-screen=result] .desk>.main-button{top:1%;height:24%;font-size:clamp(16px,4.3cqw,20px)}
+[data-screen=result] .log{top:29%;height:51%;padding:0 9px}
+[data-screen=result] .log li{font-size:clamp(16px,4.1cqw,20px);line-height:1.12;white-space:nowrap}
+[data-screen=result] .result-pages button{font-size:clamp(15px,4cqw,19px)}
+[data-screen=result] .outro h2{font-size:clamp(22px,6cqw,30px);line-height:1.12}
+[data-screen=result] .summary div{font-size:clamp(16px,4.3cqw,21px);line-height:1.1;padding:4px 8px}
+[data-screen=result] .summary strong{font-size:clamp(20px,5.4cqw,28px);margin-bottom:2px}
 </style>
 </head>
 <body>
