@@ -236,12 +236,17 @@ dialog .card{width:min(147px,44vw);max-width:100%;margin:6px auto}
 [data-screen=result] .summary strong{font-size:clamp(20px,5.4cqw,28px);margin-bottom:2px}
 .stage-lights{position:absolute;inset:0;pointer-events:none;z-index:1}
 .stage-lights i{position:absolute;left:var(--x);top:var(--y);width:5cqw;aspect-ratio:1;translate:-50% -50%;border-radius:50%;background:radial-gradient(circle,#fff5ce 0%,#ffd17a99 23%,#ff8c2244 49%,transparent 72%);opacity:0}
-.stage-lights .sign-lamp{animation:sign-glow 3.8s calc(0s - var(--delay)) ease-in-out infinite}
 .stage-lights .prize-lamp{width:6.4cqw}
 .prize-glow .prize-lamp{animation:prize-flare .66s calc(var(--delay) * .18) ease-out both}
-@keyframes sign-glow{0%,100%{opacity:.07}50%{opacity:.88}}
 @keyframes prize-flare{0%,100%{opacity:0}32%{opacity:1}}
 @media(prefers-reduced-motion:reduce){.stage-lights{display:none}}
+/* Dim the photographed bulb itself between highlights. */
+.stage-lights .sign-lamp{background:none;opacity:1;animation:none}
+.sign-lamp::before,.sign-lamp::after{content:"";position:absolute;inset:0;border-radius:50%;animation-duration:3.8s;animation-delay:calc(0s - var(--delay));animation-timing-function:ease-in-out;animation-iteration-count:infinite}
+.sign-lamp::before{background:radial-gradient(circle,#301b20 0 21%,#592b27 27%,#652d234d 39%,transparent 56%);animation-name:lamp-dim}
+.sign-lamp::after{background:radial-gradient(circle,#fff9d3 0 13%,#ffe690a8 24%,#ff9f3859 48%,transparent 72%);animation-name:lamp-bright}
+@keyframes lamp-dim{0%,100%{opacity:.93}45%,58%{opacity:0}}
+@keyframes lamp-bright{0%,100%{opacity:0}45%,58%{opacity:1}}
 </style>
 </head>
 <body>
