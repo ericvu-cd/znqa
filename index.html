@@ -270,6 +270,12 @@ dialog .card{width:min(147px,44vw);max-width:100%;margin:6px auto}
 .challenge.pressed img{filter:none;opacity:1}
 .option.pressed:not([hidden]),.option:active:not([hidden]){filter:brightness(1.23);outline:2px solid #ffdf91;outline-offset:-3px}
 @media(prefers-reduced-motion:reduce){.challenge:active,.challenge.pressed{transform:none}}
+.binary .option:not([hidden]){position:relative}
+.binary .option.pressed:not([hidden]),.binary .option:active:not([hidden]){filter:none;outline:none}
+.binary .option.pressed::after,.binary .option:active::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 42%,#fff8c24d 0%,#fffae224 42%,transparent 66%);
+}
 </style>
 </head>
 <body>
