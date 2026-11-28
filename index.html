@@ -54,7 +54,7 @@ dialog::backdrop{background:#192d2aad}dialog h2{font-size:1.3rem;margin:0 0 8px}
 .card{display:grid;justify-items:center;place-content:center;gap:7px;margin:9px auto 14px;width:min(190px,65%);aspect-ratio:3/4;transform:rotate(-3deg);border:3px solid #e8c88e;border-radius:14px;color:#fff4da;background:repeating-conic-gradient(from 16deg at 50% 40%,transparent 0deg 22deg,#eac6fd35 23deg 24deg,transparent 25deg 44deg),radial-gradient(at 50% 40%,#8d5eb9,#40245e 57%,#221436);box-shadow:inset 0 0 0 5px #6f548b,5px 6px #382847,6px 9px 15px #392a4b55}
 .card .shard{width:58px;height:72px;display:grid;place-items:center;color:white;font-size:1.6rem;font-weight:850}.card small{font-weight:800;color:#f3d6a9}
 .summary{display:flex;justify-content:center;gap:9px}.summary div{background:#edf2e5;border-radius:7px;padding:5px 9px;font-size:.72rem;font-weight:800}.summary strong{display:block;font-size:1.2rem}
-.log{padding:0;list-style:none;background:#fff7e1;border-radius:7px}.log li{display:flex;justify-content:space-between;gap:7px;padding:5px 8px;border-bottom:1px solid #ead9b8;font-size:.77rem}
+.log li{display:flex;justify-content:space-between;gap:7px;padding:5px 8px;border-bottom:1px solid #ead9b8;font-size:.77rem}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 .chest{--size:clamp(159px,53vw,229px);position:relative;display:block;width:var(--size);aspect-ratio:10/8}
 .chest span{display:block;position:absolute;inset:0}
@@ -103,7 +103,7 @@ body{background:#070819}
 .option b{background:#251a43;color:#f8d99a}.binary .option{justify-content:center;min-height:64px;font-size:1.3rem;background:linear-gradient(160deg,#128e83,#095849);box-shadow:0 4px #08362e,inset 0 2px #7de0cf}.binary .option:nth-child(2){background:linear-gradient(160deg,#bc4662,#822944);box-shadow:0 4px #52162a,inset 0 2px #ed9bac}.binary .option b{display:none}
 dialog{color:#fff0d1;background:linear-gradient(#322047,#171631);border-color:#ce9d65}.note{background:#ffebbf;color:#321d38}.note p+p{color:#51384d}.reward-line{color:#f0c2ff}
 .loot{background:#292045;border-color:#866295;color:#ffeac7}.loot.open{background:#513269;border-color:#d49bed}
-.summary div{background:#f9dca5}.log{background:#211936;color:#fce9c6}.log li{border-color:#544064}
+.summary div{background:#f9dca5}.log li{border-color:#544064}
 
 .game{--stage:url("./stage.jpg");display:block;height:100svh;width:min(100%,64svh);max-width:none;padding:0;background:var(--stage) center/100% 100% no-repeat;container-type:inline-size;border:0}
 .game::before{display:none}
@@ -123,7 +123,7 @@ dialog{color:#fff0d1;background:linear-gradient(#322047,#171631);border-color:#c
 .clock{position:absolute;top:3.3%;left:7.6%;width:84%;height:14%;display:grid;grid-template-columns:1fr 14%;gap:4%;padding:0 1%;border-radius:3px;border:0;box-shadow:none;background:linear-gradient(#241528,#140d17)}
 .bulbs i{width:min(5cqw,24px);border:1px solid #a77650}
 .clock span{font-size:clamp(.72rem,4.5cqw,1.6rem)}
-.choices,.launch,.log{position:absolute;top:24%;height:76%;left:0;width:100%;margin:0;padding:3%;border-radius:20px;background:radial-gradient(ellipse,#242a59,#17172e);box-shadow:0 0 14px #1b182e}
+.choices,.launch{position:absolute;top:24%;height:76%;left:0;width:100%;margin:0;padding:3%;border-radius:20px;background:radial-gradient(ellipse,#242a59,#17172e);box-shadow:0 0 14px #1b182e}
 .choices{overflow:auto;align-content:start;gap:5px}
 .choices.binary{padding:0;gap:0;grid-template-columns:1fr 1fr;grid-template-rows:1fr}
 .binary .option:not([hidden]){display:block;min-height:0;width:100%;height:100%;border:0;border-radius:0;box-shadow:none;background-image:var(--stage);background-size:222.222% 443.064%;background-position:9.1% 77.05%;background-repeat:no-repeat}
@@ -142,19 +142,14 @@ dialog{color:#fff0d1;background:linear-gradient(#322047,#171631);border-color:#c
 .brief{font-size:clamp(.71rem,3.5cqw,.97rem)}
 [data-screen=home] .desk::before,[data-screen=result] .desk::before{content:"";position:absolute;left:8%;top:3%;width:84%;height:14%;background:#1c1222;border-radius:5px}
 [data-screen=result] .desk>.main-button{position:absolute;top:24%;left:4%;width:92%;z-index:1}
-[data-screen=result] .log{top:51%;height:49%;overflow:auto}
 @media(max-height:650px){.choices:not(.binary){gap:3px;padding:1.5%}.choices:not(.binary) .option{min-height:28px;padding:2px 7px}.choices:not(.binary) .option b{height:18px;width:18px}}
 
 html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
 .game{height:100dvh}
-.board-body,.choices,.log,dialog{overflow:hidden}
+.board-body,.choices,dialog{overflow:hidden}
 .choices:not(.binary){grid-template-rows:repeat(4,minmax(0,1fr));align-content:stretch}
 .choices:not(.binary) .option{min-height:0;height:100%;line-height:1.14;white-space:normal}
 .option span{min-width:0;overflow-wrap:anywhere}
-[data-screen=result] .log{top:46%;height:36%;display:grid;grid-template-rows:repeat(4,minmax(0,1fr));padding:0 3%}
-.log li{align-items:center;font-size:clamp(.59rem,3cqw,.84rem);padding:0 2px;line-height:1}
-.result-pages{position:absolute;bottom:0;left:4%;width:92%;height:17%}
-.result-pages button{min-height:0;height:100%;padding:0}
 [data-screen=result] .desk>.main-button{height:20%;min-height:0;padding:0}
 dialog{max-height:none}
 dialog .card{width:min(147px,44vw);max-width:100%;margin:6px auto}
@@ -226,11 +221,9 @@ dialog .card{width:min(147px,44vw);max-width:100%;margin:6px auto}
 @keyframes empty-drop{0%{transform:translateY(-6px) rotate(-4deg)}55%{transform:translateY(2px) rotate(3deg)}100%{transform:none}}
 .result-copy{font-size:17px;line-height:1.4}
 /* Use the idle countdown area for larger results without moving the prize podium. */
-[data-screen=result] .desk::before{display:none}
+
 [data-screen=result] .desk>.main-button{top:1%;height:24%;font-size:clamp(16px,4.3cqw,20px)}
-[data-screen=result] .log{top:29%;height:51%;padding:0 9px}
-[data-screen=result] .log li{font-size:clamp(16px,4.1cqw,20px);line-height:1.12;white-space:nowrap}
-[data-screen=result] .result-pages button{font-size:clamp(15px,4cqw,19px)}
+[data-screen=result]
 [data-screen=result] .outro h2{font-size:clamp(22px,6cqw,30px);line-height:1.12}
 [data-screen=result] .summary div{font-size:clamp(16px,4.3cqw,21px);line-height:1.1;padding:4px 8px}
 [data-screen=result] .summary strong{font-size:clamp(20px,5.4cqw,28px);margin-bottom:2px}
@@ -263,8 +256,8 @@ dialog .card{width:min(147px,44vw);max-width:100%;margin:6px auto}
 .challenge strong,.challenge small{display:block;line-height:1.16}
 .challenge strong{font-size:clamp(12px,3.9cqw,20px)}
 .challenge small{margin-top:3px;color:#e9d0f7;font-size:clamp(11px,3cqw,16px)}
-.round-nav{position:absolute;top:1%;height:24%;left:4%;width:92%;display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.round-nav button{min-height:0;padding:0;font-size:clamp(15px,4cqw,20px)}
+.round-nav{position:absolute;top:21%;height:76%;left:0;width:100%;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:9px;padding:8px;border-radius:8px;background:linear-gradient(180deg,#191a35,#242451 48%,#17162e)}
+.round-nav button{min-height:48px;padding:5px;font-size:clamp(16px,4.6cqw,21px)}
 .collection-list{display:grid;gap:5px}
 .collection-row{display:grid;grid-template-columns:40px 1fr auto;align-items:center;text-align:left;gap:8px;padding:3px 7px;background:#362553;color:#fff1c7;border:1px solid #8d6ca0;border-radius:8px}
 .collection-row img{width:40px;height:40px;object-fit:contain}.collection-row:disabled{opacity:.55}
@@ -561,24 +554,6 @@ function finish(){
   appendButton(navigation,"再挑戰",()=>start());
   appendButton(navigation,"選挑戰",showChallenges);
   desk.append(navigation);
-  const log=document.createElement("ol");log.className="log";log.setAttribute("aria-label","各站探險紀錄");
-  round.forEach((item,i)=>{
-    const row=document.createElement("li"),label=document.createElement("strong"),result=document.createElement("span");
-    label.textContent=(i+1)+"　"+item.category;
-    const entry=history[i];
-    result.textContent=entry.status==="win"?({new:"新拼圖",duplicate:"重複片",empty:"空箱"}[entry.reward]||"答對"):entry.status==="late"?"逾時":"答錯";
-    row.append(label,result);log.append(row);
-  });
-  desk.append(log);
-  const pages=document.createElement("div");pages.className="result-pages";
-  let current=0;
-  const pageCount=Math.ceil(round.length/4);
-  const next=appendButton(pages,"",()=>{current=(current+1)%pageCount;showLogPage();});
-  function showLogPage(){
-    [...log.children].forEach((row,i)=>{row.hidden=Math.floor(i/4)!==current;});
-    next.textContent="紀錄 "+(current+1)+" / "+pageCount+"　→";
-  }
-  desk.append(pages);showLogPage();
   board.querySelector("h2").focus({preventScroll:true});
 }
 function fitQuestion(){
